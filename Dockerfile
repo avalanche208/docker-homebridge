@@ -68,9 +68,9 @@ RUN case "$(uname -m)" in \
   esac \
   && set -x \
 #  && curl -Lfs https://github.com/homebridge/ffmpeg-for-homebridge/releases/download/${FFMPEG_FOR_HOMEBRIDGE_VERSION}/ffmpeg-alpine-${FFMPEG_ARCH}.tar.gz | tar xzf - -C / --no-same-owner
-  && curl -Lfs https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v7.1.3-3/jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
+  && curl -sSLf -o /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v7.1.3-3/jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
   && dpkg -i /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
-  && rm -rf /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
+  && rm -rf /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb
 
 RUN case "$(uname -m)" in \
   x86_64) DEB_ARCH='amd64';; \
