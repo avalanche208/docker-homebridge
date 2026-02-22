@@ -62,7 +62,7 @@ RUN case "$(uname -m)" in \
 
 RUN set -x \
   && curl -sSLf -o /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v7.1.3-3/jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
-  && dpkg -i /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
+  && dpkg -i /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb 2>&1 || (echo "Installation failed, installing dependencies..." && apt-get update && apt-get install -f -y && dpkg -i /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb) \
   && rm -rf /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb
 
 RUN case "$(uname -m)" in \
