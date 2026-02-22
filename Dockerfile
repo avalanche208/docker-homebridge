@@ -60,13 +60,7 @@ RUN case "$(uname -m)" in \
   && curl -SLOf  https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz \
   && tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz
 
-RUN case "$(uname -m)" in \
-  x86_64) FFMPEG_ARCH='x86_64';; \
-  armv7l) FFMPEG_ARCH='arm32v7';; \
-  aarch64) FFMPEG_ARCH='aarch64';; \
-  *) echo "unsupported architecture"; exit 1 ;; \
-  esac \
-  && set -x \
+RUN set -x \
   && curl -sSLf -o /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v7.1.3-3/jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
   && dpkg -i /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb \
   && rm -rf /jellyfin-ffmpeg7_7.1.3-3-noble_amd64.deb
