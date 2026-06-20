@@ -18,7 +18,7 @@ ARG DOCKER_HOMEBRIDGE_VERSION
 # Set version label using the Docker Homebridge version
 LABEL org.opencontainers.image.version="${DOCKER_HOMEBRIDGE_VERSION}"
 
-# ENV HOMEBRIDGE_APT_PKG_VERSION=${HOMEBRIDGE_APT_PKG_VERSION:-v1.4.1}
+ENV HOMEBRIDGE_APT_PKG_VERSION=${HOMEBRIDGE_APT_PKG_VERSION:-v2.1.0}
 ARG HOMEBRIDGE_APT_PKG_FILE=${HOMEBRIDGE_APT_PKG_VERSION}
 # ENV FFMPEG_FOR_HOMEBRIDGE_VERSION=${FFMPEG_FOR_HOMEBRIDGE_VERSION:-v2.1.1}
 # ENV DOCKER_HOMEBRIDGE_VERSION=${DOCKER_HOMEBRIDGE_VERSION:-latest}
@@ -62,14 +62,10 @@ RUN case "$(uname -m)" in \
   && curl -SLOf  https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz \
   && tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz
 
-RUN case "$(uname -m)" in \
-  x86_64) FFMPEG_ARCH='x86_64';; \
-  armv7l) FFMPEG_ARCH='arm32v7';; \
-  aarch64) FFMPEG_ARCH='aarch64';; \
-  *) echo "unsupported architecture"; exit 1 ;; \
-  esac \
-  && set -x \
-  && curl -Lfs https://github.com/homebridge/ffmpeg-for-homebridge/releases/download/${FFMPEG_FOR_HOMEBRIDGE_VERSION}/ffmpeg-alpine-${FFMPEG_ARCH}.tar.gz | tar xzf - -C / --no-same-owner
+RUN set -x \
+  && curl -sSLf -o /jellyfin-ffmpeg7_7.1.4-3-noble_amd64.deb https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v7.1.4-3/jellyfin-ffmpeg7_7.1.4-3-noble_amd64.deb \
+  && dpkg -i /jellyfin-ffmpeg7_7.1.4-3-noble_amd64.deb 2>&1 || (echo "Installation failed, installing dependencies..." && apt-get update && apt-get install -f -y && dpkg -i /jellyfin-ffmpeg7_7.1.4-3-noble_amd64.deb) \
+  && rm -rf /jellyfin-ffmpeg7_7.1.4-3-noble_amd64.deb
 
 RUN case "$(uname -m)" in \
   x86_64) DEB_ARCH='amd64';; \
