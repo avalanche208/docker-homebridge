@@ -1,0 +1,32 @@
+ARG HOMEBRIDGE_IMAGE=homebridge/homebridge:latest
+FROM ${HOMEBRIDGE_IMAGE}
+
+ARG JELLYFIN_FFMPEG_VERSION=7.1.4-3
+ARG TARGETARCH
+
+LABEL org.opencontainers.image.title="Homebridge with Jellyfin FFmpeg" \
+      org.opencontainers.image.description="Homebridge image with the Jellyfin FFmpeg build" \
+      org.opencontainers.image.source="https://github.com/avalanche208/docker-homebridge"
+
+USER root
+
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+      amd64) JF_ARCH="amd64" ;; \
+      arm64) JF_ARCH="arm64" ;; \
+      *) echo "Jellyfin FFmpeg is not packaged for architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac; \
+    PACKAGE="jellyfin-ffmpeg7_${JELLYFIN_FFMPEG_VERSION}-noble_${JF_ARCH}.deb"; \
+    URL="https://github.com/jellyfin/jellyfin-ffmpeg/releases/download/v${JELLYFIN_FFMPEG_VERSION}/${PACKAGE}"; \
+    apt-get update; \
+    curl --fail --location --show-error --output "/tmp/${PACKAGE}" "${URL}"; \
+    apt-get install --yes --no-install-recommends "/tmp/${PACKAGE}"; \
+    ln -sf /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg; \
+    ln -sf /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe; \
+    ffmpeg -version; \
+    ffprobe -version; \
+    rm -f "/tmp/${PACKAGE}"; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
+
+ENV FFMPEG_PATH=/usr/local/bin/ffmpeg
