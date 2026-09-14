@@ -34,6 +34,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set release metadata
+        id: release
+        run: echo "tag=$(date -u +%Y-%m-%d)-jellyfin-${JELLYFIN_FFMPEG_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync official package metadata
+        run: |
+          curl --fail --location --show-error             https://raw.githubusercontent.com/homebridge/docker-homebridge/latest/package.json             --output package.json.upstream
+          if ! cmp --silent package.json package.json.upstream; then
+            mv package.json.upstream package.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package.json
+            git commit -m "Sync package metadata from official Homebridge"
+            git push origin HEAD:latest
+          else
+            rm package.json.upstream
+          fi
+
       - name: Verify official Homebridge image
         run: docker buildx imagetools inspect homebridge/homebridge:latest
 
@@ -63,6 +81,7 @@ jobs:
           tags: |
             ${{ env.GHCR_IMAGE }}:latest
             ${{ env.GHCR_IMAGE }}:jellyfin-${{ env.JELLYFIN_FFMPEG_VERSION }}
+            ${{ env.GHCR_IMAGE }}:${{ steps.release.outputs.tag }}
 
       - name: Check Docker Hub credentials
         id: dockerhub
@@ -98,3 +117,25 @@ jobs:
           tags: |
             ${{ env.DOCKERHUB_IMAGE }}:latest
             ${{ env.DOCKERHUB_IMAGE }}:jellyfin-${{ env.JELLYFIN_FFMPEG_VERSION }}
+            ${{ env.DOCKERHUB_IMAGE }}:${{ steps.release.outputs.tag }}
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          NOTES=$(cat <<EOF
+          Homebridge with Jellyfin FFmpeg ${JELLYFIN_FFMPEG_VERSION}
+
+          Images:
+          - docker.io/${DOCKERHUB_IMAGE}:${RELEASE_TAG}
+          - ghcr.io/avalanche208/homebridge-jellyfin-ffmpeg:${RELEASE_TAG}
+
+          Built from the current official homebridge/homebridge:latest image for linux/amd64 and linux/arm64.
+          EOF
+          )
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" --title "Homebridge Jellyfin FFmpeg ${RELEASE_TAG}" --notes "${NOTES}"
+          else
+            gh release create "${RELEASE_TAG}" --title "Homebridge Jellyfin FFmpeg ${RELEASE_TAG}" --notes "${NOTES}" --latest
+          fi
