@@ -34,14 +34,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync official Homebridge repository
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote add upstream https://github.com/homebridge/docker-homebridge.git
-          git fetch upstream latest
-          git merge --no-edit upstream/latest
-          git push origin HEAD:latest
+      - name: Verify official Homebridge image
+        run: docker buildx imagetools inspect homebridge/homebridge:latest
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
